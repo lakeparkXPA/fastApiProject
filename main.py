@@ -8,7 +8,7 @@ class Item(BaseModel):
     name: str
     description: str | None = None
     price: float
-    tax: float | None = None
+    tax: float | None = 0
 
 
 class ModelNames(str, Enum):
@@ -20,9 +20,20 @@ class ModelNames(str, Enum):
 app = FastAPI()
 
 
+@app.put("/items/{item_id}")
+async def create_item(item: Item, item_id: int, q: str | None = None):
+    result = {"item_id": item_id, **item.dict()}
+    if q:
+        result.update({"q": q})
+    return result
+
+
 @app.post("/items/")
 async def create_item(item: Item):
-    return item
+    item_dict = item.dict()
+    if item.tax:
+        item_dict.update({"price_with_tax": item.price + item.tax})
+    return item_dict
 
 
 @app.get("/")
